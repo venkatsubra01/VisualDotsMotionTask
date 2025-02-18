@@ -4,26 +4,157 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Random Dots Motion Task</title>
+    <style>
+        body { text-align: center; }
+        canvas { background: white; margin-top: 10px; }
+        .flash-correct { background-color: green; }
+        .flash-incorrect { background-color: red; }
+    </style>
     <script>
-        function startSimulation() {
-            fetch("http://127.0.0.1:5000/start", {
+        let canvas, ctx;
+        let dots = [];
+        let coherence = 0;
+        let direction = "";
+        let trialStartTime;
+        let trialActive = false;
+        const numDots = 1000;
+        const dotSpeed = 2;
+        const timeBin = 200; // Resample every 200ms
+
+        function startTrial() {
+            fetch("/start_trial", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({})
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById("status").innerText = data.message;
+                coherence = data.coherence;
+                direction = data.direction;
+                trialStartTime = Date.now();
+                trialActive = true;
+                initializeDots();
             })
             .catch(error => console.error("Error:", error));
         }
+
+        function submitResponse(userResponse) {
+            if (!trialActive) return;
+
+            let reactionTime = Date.now() - trialStartTime;
+            trialActive = false;
+
+            fetch("/submit_response", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    response: userResponse,
+                    correct_response: direction,
+                    coherence: coherence,
+                    reaction_time: reactionTime
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.body.classList.add(data.correct ? "flash-correct" : "flash-incorrect");
+                setTimeout(() => {
+                    document.body.classList.remove("flash-correct", "flash-incorrect");
+                    startTrial(); // Start next trial automatically
+                }, 500);
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        function initializeDots() {
+            dots = [];
+            for (let i = 0; i < numDots; i++) {
+                dots.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    isCoherent: Math.random() < coherence,
+                    angle: Math.random() * Math.PI * 2,
+                    speed: dotSpeed
+                });
+            }
+            resampleCoherence(); // Start resampling every 200ms
+            animateDots();
+        }
+
+        function resampleCoherence() {
+            if (!trialActive) return;
+
+            let numCoherent = Math.floor(coherence * numDots);
+            let coherentIndices = new Set();
+
+            while (coherentIndices.size < numCoherent) {
+                coherentIndices.add(Math.floor(Math.random() * numDots));
+            }
+
+            for (let i = 0; i < numDots; i++) {
+                let wasCoherent = dots[i].isCoherent;
+                let isNowCoherent = coherentIndices.has(i);
+
+                if (wasCoherent && isNowCoherent) {
+                    // If dot was coherent and remains coherent, keep its direction
+                    dots[i].angle = dots[i].angle;
+                } else if (isNowCoherent) {
+                    // If dot was random but is now coherent, set its direction
+                    dots[i].angle = (direction === "left") ? Math.PI : 0;
+                } else {
+                    // If dot was coherent but now is random, assign a random direction
+                    dots[i].angle = Math.random() * Math.PI * 2;
+                }
+
+                dots[i].isCoherent = isNowCoherent;
+            }
+
+            setTimeout(resampleCoherence, timeBin); // Resample again after 200ms
+        }
+
+        function animateDots() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let dot of dots) {
+                dot.x += dot.speed * Math.cos(dot.angle);
+                dot.y += dot.speed * Math.sin(dot.angle);
+
+                if (dot.x < 0) dot.x = canvas.width;
+                if (dot.x > canvas.width) dot.x = 0;
+                if (dot.y < 0) dot.y = canvas.height;
+                if (dot.y > canvas.height) dot.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = "white";
+                ctx.fill();
+            }
+
+            if (trialActive) requestAnimationFrame(animateDots);
+        }
+
+        window.onload = () => {
+            canvas = document.getElementById("canvas");
+            ctx = canvas.getContext("2d");
+            canvas.width = 600;
+            canvas.height = 600;
+            startTrial();
+        };
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowLeft") {
+                submitResponse("left");
+            } else if (event.key === "ArrowRight") {
+                submitResponse("right");
+            }
+        });
     </script>
 </head>
 <body>
     <h1>Random Dots Motion Task</h1>
     <p>Use the Left (←) and Right (→) arrow keys to guess the direction.</p>
-    <button onclick="startSimulation()">Start Simulation</button>
-    <button onclick="window.location.href='/results_page'">Show Results</button>
-    <p id="status"></p>
+    <canvas id="canvas"></canvas>
+    <br>
+    <button onclick="window.location.href='/results_page'">View Results</button>
 </body>
 </html>
