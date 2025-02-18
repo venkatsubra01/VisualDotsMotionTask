@@ -65,7 +65,7 @@ def generate_plot():
     plt.xlabel("Coherence (%)")
     plt.ylabel("Reaction Times (ms)")
     plt.title("Reaction Time vs Coherence")
-    plt.ylim(0, max(reaction_times) + 100)  # Adjust y-limit dynamically
+    plt.ylim(0, 2000)  # Don't look at reaction times over 2000 ms
     plt.xlim(0, 1)
     plt.grid(True)
     # Scatter plot of Reaction Time over Trials
