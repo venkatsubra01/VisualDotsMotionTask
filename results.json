@@ -1,0 +1,30 @@
+[
+    {
+        "correct": "left",
+        "user": "left",
+        "correct_guess": true,
+        "coherence": 0.48,
+        "reaction_time": 933
+    },
+    {
+        "correct": "right",
+        "user": "right",
+        "correct_guess": true,
+        "coherence": 0.27,
+        "reaction_time": 357
+    },
+    {
+        "correct": "left",
+        "user": "left",
+        "correct_guess": true,
+        "coherence": 0.89,
+        "reaction_time": 464
+    },
+    {
+        "correct": "left",
+        "user": "right",
+        "correct_guess": false,
+        "coherence": 0.87,
+        "reaction_time": 448
+    }
+]

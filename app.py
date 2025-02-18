@@ -2,6 +2,9 @@ import json
 import os
 import random
 from flask import Flask, request, jsonify, render_template
+import matplotlib
+matplotlib.use('Agg')  # Use a non-GUI backend to prevent threading issues
+import matplotlib.pyplot as plt
 
 # Constants
 # Constants
@@ -44,6 +47,39 @@ def load_results():
                 return []
     return []
 
+# Generate desired plots
+def generate_plot():
+    results = load_results()
+    if not results:
+        return  # No data to plot
+    trials = list(range(1, len(results) + 1))
+    coherence = [r["coherence"] for r in results]  # Coherence level
+    reaction_times = [r["reaction_time"] for r in results]  # Reaction time
+    correct_guesses = [r["correct_guess"] for r in results]  # Boolean list of correctness
+    # Assign colors based on correctness
+    colors = ["green" if correct else "red" for correct in correct_guesses]
+    plt.figure(figsize=(10, 5))
+    # Scatter plot of Reaction Time vs Coherence (Green = Correct, Red = Incorrect)
+    plt.subplot(2, 1, 1)
+    plt.scatter(coherence, reaction_times, c=colors, edgecolors="black")
+    plt.xlabel("Coherence (%)")
+    plt.ylabel("Reaction Times (ms)")
+    plt.title("Reaction Time vs Coherence")
+    plt.ylim(0, max(reaction_times) + 100)  # Adjust y-limit dynamically
+    plt.xlim(0, 1)
+    plt.grid(True)
+    # Scatter plot of Reaction Time over Trials
+    plt.subplot(2, 1, 2)
+    plt.scatter(trials, reaction_times, c=colors, edgecolors="black", label="Reaction Time (ms)")
+    plt.xlabel("Trial Number")
+    plt.ylabel("Reaction Time (ms)")
+    plt.title("Reaction Time Over Trials")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("static/results_plot.png")
+    plt.close()
+
 # Start at the home screen
 @app.route('/')
 def home():
@@ -53,6 +89,7 @@ def home():
 @app.route('/results_page')
 def show_results():
     results = load_results()
+    generate_plot()  # Generate the plot before rendering
     return render_template('results.html', data=results, plot_file = PLOT_FILE)
 
 # Called from JS to get the coherence and direction for each trial
@@ -88,5 +125,5 @@ def submit_response():
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set, use 10000 when testing locally
+    port = int(os.environ.get("PORT", 10000))  # Default to 5000 if PORT is not set, use 10000 when testing locally
     app.run(host='0.0.0.0', port=port)
