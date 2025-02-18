@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Dots Motion Task</title>
+    <script>
+        function startSimulation() {
+            fetch("http://127.0.0.1:5000/start", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("status").innerText = data.message;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</head>
+<body>
+    <h1>Random Dots Motion Task</h1>
+    <p>Use the Left (←) and Right (→) arrow keys to guess the direction.</p>
+    <button onclick="startSimulation()">Start Simulation</button>
+    <button onclick="window.location.href='/results_page'">Show Results</button>
+    <p id="status"></p>
+</body>
+</html>

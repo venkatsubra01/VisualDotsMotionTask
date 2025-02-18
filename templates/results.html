@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results Page</title>
+</head>
+<body>
+    <h1>Results Page</h1>
+    <button onclick="window.location.href='/'">Go Back to Home</button>
+    <h2>Results</h2>
+    <table border="1">
+        <tr>
+            <th>Trial</th>
+            <th>Correct Direction</th>
+            <th>User Response</th>
+            <th>Correct?</th>
+            <th>Reaction Time (ms)</th>
+            <th>Coherence (%)</th>
+        </tr>
+        {% for trial in data %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ trial.correct }}</td>
+            <td>{{ trial.user }}</td>
+            <td style="color: {% if trial.correct_guess %}green{% else %}red{% endif %}">
+                {{ "✔" if trial.correct_guess else "✘" }}
+            </td>
+            <td>{{ trial.reaction_time }}</td>
+            <td>{{ trial.coherence }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Performance Over Trials</h2>
+    <img src="{{ plot_file }}" alt="Results Plot" width="800px">
+</body>
+</html>
