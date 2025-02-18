@@ -13,14 +13,15 @@
     <script>
         let canvas, ctx;
         let dots = [];
-        let coherence = 0;
+        let coherence = 0; // This will be reassigned for each dot later
         let direction = "";
         let trialStartTime;
         let trialActive = false;
-        const numDots = 1000;
-        const dotSpeed = 2;
+        const numDots = 1000; // put 1000 dots on the screen
+        const dotSpeed = 2; // 1 is slow, 4 is fast
         const timeBin = 200; // Resample every 200ms
 
+        // Waits for response from start_trial to get the coherence and direction (left/right)
         function startTrial() {
             fetch("/start_trial", {
                 method: "POST",
@@ -37,9 +38,11 @@
             .catch(error => console.error("Error:", error));
         }
 
+        // Function called when the user clicks "left" or "right"
         function submitResponse(userResponse) {
             if (!trialActive) return;
 
+            // Get the time for this trial
             let reactionTime = Date.now() - trialStartTime;
             trialActive = false;
 
@@ -55,7 +58,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                document.body.classList.add(data.correct ? "flash-correct" : "flash-incorrect");
+                document.body.classList.add(data.correct ? "flash-correct" : "flash-incorrect"); // Flash correct or not to the screen
                 setTimeout(() => {
                     document.body.classList.remove("flash-correct", "flash-incorrect");
                     startTrial(); // Start next trial automatically
@@ -64,6 +67,7 @@
             .catch(error => console.error("Error:", error));
         }
 
+        // Initialize the coherence and x/y of the dots, then resample/animate
         function initializeDots() {
             dots = [];
             for (let i = 0; i < numDots; i++) {
@@ -75,7 +79,7 @@
                     speed: dotSpeed
                 });
             }
-            resampleCoherence(); // Start resampling every 200ms
+            resampleCoherence(); // Choose which dots to move coherently and resample every 200ms
             animateDots();
         }
 
@@ -83,11 +87,12 @@
             if (!trialActive) return;
 
             let numCoherent = Math.floor(coherence * numDots);
+            // numCoherent should be the maximum allowed dots that are allowed to be coherent
             let coherentIndices = new Set();
 
             while (coherentIndices.size < numCoherent) {
                 coherentIndices.add(Math.floor(Math.random() * numDots));
-            }
+            } //Sampling which dots to be coherent and adding to the set
 
             for (let i = 0; i < numDots; i++) {
                 let wasCoherent = dots[i].isCoherent;
@@ -110,37 +115,51 @@
             setTimeout(resampleCoherence, timeBin); // Resample again after 200ms
         }
 
+        // Animate the dots recurrently until an event listener is called
         function animateDots() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Background of the screen with the dots is black
             ctx.fillStyle = "black";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Iterate through all dots on the screen
             for (let dot of dots) {
-                dot.x += dot.speed * Math.cos(dot.angle);
-                dot.y += dot.speed * Math.sin(dot.angle);
+                dot.x += dot.speed * Math.cos(dot.angle); // If angle is 0 or 180, this is just +/- dot.speed
+                dot.y += dot.speed * Math.sin(dot.angle); // If angle is 0 or 180, this is just 0
 
+                // Reset positions of dots if they go off screen
                 if (dot.x < 0) dot.x = canvas.width;
                 if (dot.x > canvas.width) dot.x = 0;
                 if (dot.y < 0) dot.y = canvas.height;
                 if (dot.y > canvas.height) dot.y = 0;
 
                 ctx.beginPath();
+                // The dot should be a circle with radius 2
                 ctx.arc(dot.x, dot.y, 2, 0, Math.PI * 2);
+                // Dot color is white
                 ctx.fillStyle = "white";
                 ctx.fill();
             }
 
+            // Tells the browser to call animateDots() before the next frame is drawn
             if (trialActive) requestAnimationFrame(animateDots);
+            // This continues until trial is not active
         }
 
+        // When the window first loads, this is executed
         window.onload = () => {
             canvas = document.getElementById("canvas");
             ctx = canvas.getContext("2d");
+            // Canvas sizing is 600 x 600 pixels
             canvas.width = 600;
             canvas.height = 600;
+
+            // Begin the trials
             startTrial();
         };
 
+        // Event listeners for left and right responses
         document.addEventListener("keydown", (event) => {
             if (event.key === "ArrowLeft") {
                 submitResponse("left");
@@ -155,6 +174,7 @@
     <p>Use the Left (←) and Right (→) arrow keys to guess the direction.</p>
     <canvas id="canvas"></canvas>
     <br>
+    <!--Button to go to the results page-->
     <button onclick="window.location.href='/results_page'">View Results</button>
 </body>
 </html>
