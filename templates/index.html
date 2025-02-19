@@ -13,13 +13,14 @@
     <script>
         let canvas, ctx;
         let dots = [];
+        let userName = "" // Stores the user's name
         let coherence = 0; // This will be reassigned for each dot later
         let direction = "";
         let trialStartTime;
         let trialActive = false;
         const numDots = 1000; // put 1000 dots on the screen
-        const dotSpeed = 2; // 1 is slow, 4 is fast
-        const timeBin = 200; // Resample every 200ms
+        const dotSpeed = 3; // 1 is slow, 4 is fast
+        const timeBin = 20; // Resample every 200ms
 
         // Waits for response from start_trial to get the coherence and direction (left/right)
         function startTrial() {
@@ -50,6 +51,7 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    name: userName,
                     response: userResponse,
                     correct_response: direction,
                     coherence: coherence,
@@ -146,17 +148,29 @@
             if (trialActive) requestAnimationFrame(animateDots);
             // This continues until trial is not active
         }
+        function saveUserName() {
+            let input = document.getElementById("nameInput").value.trim();
+
+            if (input) { // If input is not empty
+                userName = input;
+                document.getElementById("nameModal").style.display = "none"; // Hide the name input
+                startTrial(); // Start the trials only after name is entered
+            } else {
+                alert("Name is required!"); // Alert if empty
+            }
+        }
 
         // When the window first loads, this is executed
         window.onload = () => {
+
+
             canvas = document.getElementById("canvas");
             ctx = canvas.getContext("2d");
             // Canvas sizing is 600 x 600 pixels
             canvas.width = 600;
             canvas.height = 600;
 
-            // Begin the trials
-            startTrial();
+            document.getElementById("nameModal").style.display = "flex"; // Show the modal
         };
 
         // Event listeners for left and right responses
@@ -171,6 +185,16 @@
 </head>
 <body>
     <h1>Random Dots Motion Task</h1>
+    <!-- Name input that is front and center until hidden (after user enters their name) -->
+    <div id="nameModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+         background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
+            <h2>Enter Your Name</h2>
+            <input type="text" id="nameInput" placeholder="Your Name" required>
+            <br><br>
+            <button onclick="saveUserName()">Submit</button>
+        </div>
+    </div>
     <p>Use the Left (←) and Right (→) arrow keys to guess the direction.</p>
     <canvas id="canvas"></canvas>
     <br>

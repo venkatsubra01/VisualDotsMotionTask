@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 # Constants
 RESULTS_FILE = "results.json"
 COHERENCE_LOWER_BOUND = 0.01
-COHERENCE_UPPER_BOUND = 1.0
+COHERENCE_UPPER_BOUND = 0.7
 PLOT_FILE = "static/results_plot.png"
 
 app = Flask(__name__)
@@ -105,14 +105,17 @@ def start_trial():
 def submit_response():
     """ Save the user's response """
     data = request.json
+    name = data.get("name")
     user_response = data.get("response")
     correct_response = data.get("correct_response")
     coherence = data.get("coherence")
     reaction_time = data.get("reaction_time")
 
+
     is_correct = user_response == correct_response
 
     trial_result = {
+        "name": name,
         "correct": correct_response,
         "user": user_response,
         "correct_guess": is_correct,

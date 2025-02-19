@@ -12,6 +12,7 @@
     <table border="1">
         <tr>
             <th>Trial</th>
+            <th>Name</th>
             <th>Correct Direction</th>
             <th>User Response</th>
             <th>Correct?</th>
@@ -21,6 +22,7 @@
         {% for trial in data %}
         <tr>
             <td>{{ loop.index }}</td>
+            <td>{{ trial.name }}</td>
             <td>{{ trial.correct }}</td>
             <td>{{ trial.user }}</td>
             <td style="color: {% if trial.correct_guess %}green{% else %}red{% endif %}">
