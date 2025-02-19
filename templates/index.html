@@ -97,13 +97,9 @@
             } //Sampling which dots to be coherent and adding to the set
 
             for (let i = 0; i < numDots; i++) {
-                let wasCoherent = dots[i].isCoherent;
                 let isNowCoherent = coherentIndices.has(i);
 
-                if (wasCoherent && isNowCoherent) {
-                    // If dot was coherent and remains coherent, keep its direction
-                    dots[i].angle = dots[i].angle;
-                } else if (isNowCoherent) {
+                if (isNowCoherent) {
                     // If dot was random but is now coherent, set its direction
                     dots[i].angle = (direction === "left") ? Math.PI : 0;
                 } else {

@@ -15,7 +15,7 @@ RESULTS_FILE = "results.json"
 # Magnitude of the coherence bounds (internally will pick
 # left or right randomly)
 COHERENCE_LOWER_BOUND = 0
-COHERENCE_UPPER_BOUND = 0.25
+COHERENCE_UPPER_BOUND = 0.5
 PLOT_FILE = "static/results_plot.png"
 NUM_ENTRIES_NEEDED_TO_COUNT = 30
 
