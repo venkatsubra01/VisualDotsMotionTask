@@ -81,7 +81,7 @@ def generate_plot():
     plt.ylabel("P(Choose Right)")
     plt.title("P(Choosing Right) vs. Coherence")
     plt.ylim(0, 1.2)
-    plt.xlim(-0.25, 0.25)
+    plt.xlim((-1)*COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND)
     plt.axhline(0.5, linestyle="--", color="gray", alpha=0.6)  # Chance level
     plt.axvline(0, linestyle="--", color="gray", alpha=0.6)  # Neutral coherence
     plt.grid()
@@ -100,7 +100,7 @@ def generate_plot():
     plt.ylabel("Reaction Times (ms)")
     plt.title("Reaction Time vs Coherence")
     plt.ylim(0, 2200)  # Don't look at reaction times over 2000 ms
-    plt.xlim(-0.25, 0.25)
+    plt.xlim((-1) * COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND)
     plt.grid(True)
 
     # Scatter plot of probability correct vs coherence
@@ -111,7 +111,7 @@ def generate_plot():
     plt.ylabel("Probability Correct")
     plt.title("Probability Correct vs Coherence Bin")
     plt.ylim(0, 1.2)
-    plt.xlim(-0.5, 0.5)
+    plt.xlim((-1) * COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND)
     plt.grid(True)
 
 
