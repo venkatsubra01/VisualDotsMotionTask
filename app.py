@@ -58,66 +58,65 @@ def generate_plot():
     results = load_results()
     if not results:
         return  # No data to plot
-    print(f"results: {results}")
-    df = pd.DataFrame(results)
-    print(f"results: {results}")
 
+    df = pd.DataFrame(results)
     df['choice_right'] = df['user'] == 'right'
 
     num_bins = 10  # Adjust based on data density
-    # Cut up the coherence data into num_bins bins
-    df['coherence_bin'] = pd.cut(df['coherence'], bins=np.linspace((-1)*COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND, num_bins + 1), labels=False,
-                                 include_lowest=True)
+    df['coherence_bin'] = pd.cut(
+        df['coherence'],
+        bins=np.linspace(-COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND, num_bins + 1),
+        labels=False,
+        include_lowest=True
+    )
 
-    # Compute mean probability of choosing right per bin
     bin_means = df.groupby('coherence_bin')['coherence'].mean()
     prob_right = df.groupby('coherence_bin')['choice_right'].mean()
 
-    # Plot
-    plt.figure(figsize=(4, 12))
-    plt.subplot(3,1,1)
+    # --- P(Choosing Right) vs. Coherence ---
+    plt.figure(figsize=(6, 4))
     plt.plot(bin_means, prob_right, marker='o', linestyle='-', label="P(choose right)")
     plt.xlabel("Coherence Value")
     plt.ylabel("P(Choose Right)")
     plt.title("P(Choosing Right) vs. Coherence")
     plt.ylim(0, 1.2)
-    plt.xlim((-1)*COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND)
-    plt.axhline(0.5, linestyle="--", color="gray", alpha=0.6)  # Chance level
-    plt.axvline(0, linestyle="--", color="gray", alpha=0.6)  # Neutral coherence
+    plt.xlim(-COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND)
+    plt.axhline(0.5, linestyle="--", color="gray", alpha=0.6)
+    plt.axvline(0, linestyle="--", color="gray", alpha=0.6)
     plt.grid()
+    plt.savefig("static/prob_choose_right.png")
+    plt.close()
 
+    # --- Reaction Time vs. Coherence ---
     trials = list(range(1, len(results) + 1))
-    coherence = [r["coherence"] for r in results]  # Coherence level
-    reaction_times = [r["reaction_time"] for r in results]  # Reaction time
-    correct_guesses = [r["correct_guess"] for r in results]  # Boolean list of correctness
-    # Assign colors based on correctness
+    coherence = [r["coherence"] for r in results]
+    reaction_times = [r["reaction_time"] for r in results]
+    correct_guesses = [r["correct_guess"] for r in results]
     colors = ["green" if correct else "red" for correct in correct_guesses]
 
-    # Scatter plot of Reaction Time vs Coherence (Green = Correct, Red = Incorrect)
-    plt.subplot(3, 1, 2)
+    plt.figure(figsize=(6, 4))
     plt.scatter(coherence, reaction_times, c=colors, edgecolors="black")
     plt.xlabel("Coherence")
     plt.ylabel("Reaction Times (ms)")
     plt.title("Reaction Time vs Coherence")
-    plt.ylim(0, 2200)  # Don't look at reaction times over 2000 ms
-    plt.xlim((-1) * COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND)
+    plt.ylim(0, 2200)
+    plt.xlim(-COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND)
     plt.grid(True)
+    plt.savefig("static/reaction_time_vs_coherence.png")
+    plt.close()
 
-    # Scatter plot of probability correct vs coherence
-    plt.subplot(3, 1, 3)
+    # --- Probability Correct vs. Coherence ---
     percentage_correct = df.groupby('coherence_bin')['correct_guess'].mean()
+
+    plt.figure(figsize=(6, 4))
     plt.plot(bin_means, percentage_correct, marker='o', linestyle='-')
     plt.xlabel("Coherence Bin")
     plt.ylabel("Probability Correct")
-    plt.title("Probability Correct vs Coherence Bin")
+    plt.title("Probability Correct vs Coherence")
     plt.ylim(0, 1.2)
-    plt.xlim((-1) * COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND)
+    plt.xlim(-COHERENCE_UPPER_BOUND, COHERENCE_UPPER_BOUND)
     plt.grid(True)
-
-
-
-    plt.tight_layout()
-    plt.savefig("static/results_plot.png")
+    plt.savefig("static/probability_correct.png")
     plt.close()
 def get_curr_leader():
     results = load_results()
@@ -142,13 +141,14 @@ def get_curr_leader():
     speed_and_accuracy_weighted_average =  person_accuracy_averages + (2-person_reaction_time_averages)/2
     # Sum the following formula to obtain a ranking:
     # Scales reaction time to seconds and looks at 2- reaction time and takes into account how many correct
-    print(f"speed_and_accuracy_weighted_average: {speed_and_accuracy_weighted_average}")
-    winning_person = speed_and_accuracy_weighted_average.idxmax()
-    print(f"speed_and_accuracy_weighted_average: {speed_and_accuracy_weighted_average}")
-    print(f"person_accuracy_averages: {person_accuracy_averages}")
-    print(f"person_reaction_time_averages: {person_reaction_time_averages}")
 
-    return winning_person
+    # Get the top 3 players
+    top_3 = speed_and_accuracy_weighted_average.nlargest(3)
+
+    # Convert to a dictionary with rankings
+    rankings = {idx + 1: (name, round(score, 3)) for idx, (name, score) in enumerate(top_3.items())}
+
+    return rankings
 
 # Start at the home screen
 @app.route('/')
@@ -160,8 +160,9 @@ def home():
 def show_results():
     results = load_results()
     generate_plot()  # Generate the plot before rendering
-    winning_person = get_curr_leader()
-    return render_template('results.html', data=results, plot_file = PLOT_FILE, winning_person=winning_person)
+    leaderboard = get_curr_leader()
+    print(f"leaderboard: {leaderboard}")
+    return render_template('results.html', data=results, plot_file = PLOT_FILE, leaderboard=leaderboard)
 
 # Called from JS to get the coherence and direction for each trial
 @app.route('/start_trial', methods=['POST'])

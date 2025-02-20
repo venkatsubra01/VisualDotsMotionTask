@@ -63,6 +63,7 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
             transition: transform 0.3s;
+            margin: 20px 0;
         }
 
         img:hover {
@@ -74,11 +75,50 @@
     <h1>Results Page</h1>
     <button onclick="window.location.href='/'">Go Back to Home</button>
     <h2>Results</h2>
-
-    <h2>{{winning_person}} is winning!</h2>
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Score</th>
+            </tr>
+            {% if leaderboard %}
+                {% for leader in leaderboard %}
+                <tr>
+                    <td>
+                        {% if loop.index == 1 %}
+                            🏆
+                        {% elif loop.index == 2 %}
+                            🥈
+                        {% elif loop.index == 3 %}
+                            🥉
+                        {% else %}
+                            {{ loop.index }}
+                        {% endif %}
+                    </td>
+                    <td>{{leaderboard[leader][0]}}</td>
+                    <td>{{leaderboard[leader][1]}}</td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+        </table>
+    </div>
+    <br>
+    <br>
     <button onclick="window.location.href='/download_results'">Download Results (JSON)</button>
     <h2>Performance in Trials</h2>
-    <img src="{{ plot_file }}" alt="Results Plot" width="350" height="800px">
+
+    <div>
+        <img src="{{ url_for('static', filename='prob_choose_right.png') }}" alt="P(Choosing Right) vs Coherence" width="600">
+    </div>
+    <br>
+    <div>
+        <img src="{{ url_for('static', filename='reaction_time_vs_coherence.png') }}" alt="Reaction Time vs Coherence" width="600">
+    </div>
+    <br>
+    <div>
+        <img src="{{ url_for('static', filename='probability_correct.png') }}" alt="Probability Correct vs Coherence" width="600">
+    </div>
 
     <table border="1">
         <tr>
