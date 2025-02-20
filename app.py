@@ -80,7 +80,7 @@ def generate_plot():
     plt.xlabel("Coherence Value")
     plt.ylabel("P(Choose Right)")
     plt.title("P(Choosing Right) vs. Coherence")
-    plt.ylim(0, 1)
+    plt.ylim(0, 1.2)
     plt.xlim(-0.25, 0.25)
     plt.axhline(0.5, linestyle="--", color="gray", alpha=0.6)  # Chance level
     plt.axvline(0, linestyle="--", color="gray", alpha=0.6)  # Neutral coherence
@@ -99,9 +99,22 @@ def generate_plot():
     plt.xlabel("Coherence")
     plt.ylabel("Reaction Times (ms)")
     plt.title("Reaction Time vs Coherence")
-    plt.ylim(0, 2000)  # Don't look at reaction times over 2000 ms
+    plt.ylim(0, 2200)  # Don't look at reaction times over 2000 ms
     plt.xlim(-0.25, 0.25)
     plt.grid(True)
+
+    # Scatter plot of probability correct vs coherence
+    plt.subplot(3, 1, 3)
+    percentage_correct = df.groupby('coherence_bin')['correct_guess'].mean()
+    plt.plot(bin_means, percentage_correct, marker='o', linestyle='-')
+    plt.xlabel("Coherence Bin")
+    plt.ylabel("Probability Correct")
+    plt.title("Probability Correct vs Coherence Bin")
+    plt.ylim(0, 1.2)
+    plt.xlim(-0.5, 0.5)
+    plt.grid(True)
+
+
 
     plt.tight_layout()
     plt.savefig("static/results_plot.png")
@@ -111,7 +124,6 @@ def get_curr_leader():
     if not results:
         return  # No data to plot
     df = pd.DataFrame(results)
-
     # Get the number of entries for each person
     counts_by_name = df.groupby('name').size()
 
@@ -120,6 +132,8 @@ def get_curr_leader():
 
     # Filter the data to only include people with enough entries, then group by those people
     filtered_data_by_people = df[df['name'].isin(valid_names)].groupby('name')
+    if len(filtered_data_by_people) == 0:
+        return None
 
     # Get the mean of each person's accuracy and reaction time
     person_accuracy_averages = filtered_data_by_people['correct_guess'].mean()
@@ -128,6 +142,7 @@ def get_curr_leader():
     speed_and_accuracy_weighted_average =  person_accuracy_averages + (2-person_reaction_time_averages)/2
     # Sum the following formula to obtain a ranking:
     # Scales reaction time to seconds and looks at 2- reaction time and takes into account how many correct
+    print(f"speed_and_accuracy_weighted_average: {speed_and_accuracy_weighted_average}")
     winning_person = speed_and_accuracy_weighted_average.idxmax()
     print(f"speed_and_accuracy_weighted_average: {speed_and_accuracy_weighted_average}")
     print(f"person_accuracy_averages: {person_accuracy_averages}")
