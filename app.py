@@ -1,7 +1,7 @@
 import json
 import os
 import random
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 import matplotlib
 matplotlib.use('Agg')  # Use a non-GUI backend to prevent threading issues
 import matplotlib.pyplot as plt
@@ -198,6 +198,15 @@ def submit_response():
 
     save_result(trial_result)
     return jsonify({"correct": is_correct})
+
+# Allow users to download the results JSON file
+@app.route('/download_results')
+def download_results():
+    """Allow users to download the results JSON file."""
+    if os.path.exists(RESULTS_FILE):
+        return send_file(RESULTS_FILE, as_attachment=True)
+    else:
+        return "No results available.", 404
 
 
 if __name__ == '__main__':
