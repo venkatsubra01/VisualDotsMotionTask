@@ -59,7 +59,10 @@ def generate_plot():
     if not results:
         return  # No data to plot
 
+    results = [entry for entry in results if entry["reaction_time"] > 200]
+
     df = pd.DataFrame(results)
+    print(df)
     df['choice_right'] = df['user'] == 'right'
 
     num_bins = 10  # Adjust based on data density
@@ -74,6 +77,7 @@ def generate_plot():
     prob_right = df.groupby('coherence_bin')['choice_right'].mean()
 
     # --- P(Choosing Right) vs. Coherence ---
+
     plt.figure(figsize=(6, 4))
     plt.plot(bin_means, prob_right, marker='o', linestyle='-', label="P(choose right)")
     plt.xlabel("Coherence Value")
