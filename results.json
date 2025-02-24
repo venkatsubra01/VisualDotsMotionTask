@@ -4358,5 +4358,21 @@
         "correct_guess": false,
         "coherence": 0.18,
         "reaction_time": 383.0
+    },
+    {
+        "name": "Venkat",
+        "correct": "right",
+        "user": "right",
+        "correct_guess": true,
+        "coherence": 0.27,
+        "reaction_time": 533
+    },
+    {
+        "name": "Venkat",
+        "correct": "left",
+        "user": "left",
+        "correct_guess": true,
+        "coherence": -0.29,
+        "reaction_time": 346
     }
 ]

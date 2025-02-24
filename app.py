@@ -7,6 +7,8 @@ matplotlib.use('Agg')  # Use a non-GUI backend to prevent threading issues
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import scipy.stats as stats
+import threading
 
 # Constants
 # Constants
@@ -26,21 +28,23 @@ if not os.path.exists("static"):
     os.mkdir("static")
 
 # Used to add a new trial result to the JSON file
+lock = threading.Lock()
+
 def save_result(trial_result):
-    if os.path.exists(RESULTS_FILE):
-        # Get the existing results
-        with open(RESULTS_FILE, "r") as file:
-            try:
-                results = json.load(file)
-            except json.JSONDecodeError:
-                results = []
-    else:
-        results = []
-    # Append to existing results
-    results.append(trial_result)
-    # Save the updated results
-    with open(RESULTS_FILE, "w") as file:
-        json.dump(results, file, indent=4)
+    with lock:  # Prevent simultaneous access
+        if os.path.exists(RESULTS_FILE):
+            with open(RESULTS_FILE, "r") as file:
+                try:
+                    results = json.load(file)
+                except json.JSONDecodeError:
+                    results = []
+        else:
+            results = []
+
+        results.append(trial_result)  # Append new result
+
+        with open(RESULTS_FILE, "w") as file:
+            json.dump(results, file, indent=4)
 
 # Used to load the results from the JSON file
 def load_results():
@@ -96,6 +100,8 @@ def generate_plot():
     coherence = [r["coherence"] for r in results]
     reaction_times = [r["reaction_time"] for r in results]
     correct_guesses = [r["correct_guess"] for r in results]
+    print(f"coherence: {coherence}")
+    print(f"reaction_times: {reaction_times}")
     colors = ["green" if correct else "red" for correct in correct_guesses]
 
     plt.figure(figsize=(6, 4))
