@@ -7,7 +7,6 @@ matplotlib.use('Agg')  # Use a non-GUI backend to prevent threading issues
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import scipy.stats as stats
 import threading
 
 # Constants
